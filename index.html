@@ -79,7 +79,6 @@
   .single-count { font-size: 11px; color: var(--muted); }
   .single-list { border: 1px solid var(--border); }
 
-  /* NEWS ITEM */
   .news-item { padding: 18px 22px; border-bottom: 1px solid var(--border); transition: background 0.15s; }
   .news-item:last-child { border-bottom: none; }
   .news-item:hover { background: var(--surface); }
@@ -87,24 +86,21 @@
   .news-title { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 600; line-height: 1.35; flex: 1; }
   .news-chevron { color: var(--muted); font-size: 9px; transition: transform 0.2s; flex-shrink: 0; margin-top: 5px; }
   .news-item.expanded .news-chevron { transform: rotate(180deg); }
+  .news-meta { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+  .news-source { font-size: 10px; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
   .news-body { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
   .news-item.expanded .news-body { display: block; }
   .news-bullets { font-size: 13px; line-height: 1.9; color: #888; white-space: pre-line; }
+  .news-link { display: inline-flex; align-items: center; gap: 5px; margin-top: 12px; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 2px; transition: color 0.2s, border-color 0.2s; }
+  .news-link:hover { color: var(--text); border-color: #555; }
 
   /* SAVE BUTTON */
-  .save-notion-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    margin-top: 12px; padding: 7px 14px;
-    background: transparent; border: 1px solid var(--border);
-    color: var(--muted); border-radius: 5px; cursor: pointer;
-    font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 600;
-    letter-spacing: 0.1em; text-transform: uppercase;
-    transition: all 0.2s;
-  }
+  .save-notion-btn { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; margin-left: 12px; padding: 7px 14px; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 5px; cursor: pointer; font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; transition: all 0.2s; }
   .save-notion-btn:hover { border-color: #888; color: var(--text); }
   .save-notion-btn.saving { opacity: 0.5; cursor: not-allowed; }
   .save-notion-btn.saved { border-color: var(--saude); color: var(--saude); }
-  .save-notion-btn.error { border-color: #c0392b; color: #c0392b; }
+  .save-notion-btn.error-btn { border-color: #c0392b; color: #c0392b; }
+  .news-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
 
   .skeleton-item { padding: 18px 22px; border-bottom: 1px solid var(--border); }
   .skeleton-item:last-child { border-bottom: none; }
@@ -119,7 +115,6 @@
   .prompt-banner.visible { display: block; }
   .prompt-banner strong { color: var(--text); }
 
-  /* TOAST */
   #toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 10px 20px; border-radius: 8px; font-size: 12px; opacity: 0; transition: all 0.3s; z-index: 9999; white-space: nowrap; pointer-events: none; }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   #toast.success { border-color: var(--saude); color: var(--saude); }
@@ -207,14 +202,41 @@
 </main>
 
 <footer>
-  <span>Briefing Diário · Groq AI</span>
+  <span>Briefing Diário · RSS + Groq AI</span>
   <span>llama-3.3-70b-versatile</span>
 </footer>
 
 <script>
 const ACCESS_PASSWORD = 'briefing2026';
-function getNotionToken() { return localStorage.getItem('notion_token') || ''; }
-const NOTION_DB_ID = '294478df-9648-80e6-b680-000b0f45ff2c'; // Recursos
+const NOTION_DB_ID = '294478df-9648-80e6-b680-000b0f45ff2c';
+const PROXY = 'https://api.allorigins.win/get?url=';
+
+// RSS feeds por categoria
+const FEEDS = {
+  tecnologia: [
+    { url: 'https://mittechreview.com.br/feed/', name: 'MIT Tech Review BR' },
+    { url: 'https://news.mit.edu/rss/feed', name: 'MIT News' },
+    { url: 'https://canaltech.com.br/rss/', name: 'Canaltech' },
+    { url: 'https://techcrunch.com/feed/', name: 'TechCrunch' },
+    { url: 'https://www.theverge.com/rss/index.xml', name: 'The Verge' }
+  ],
+  saude: [
+    { url: 'https://g1.globo.com/rss/g1/ciencia-e-saude/', name: 'G1 Saúde' },
+    { url: 'https://mittechreview.com.br/feed/', name: 'MIT Tech Review BR' }
+  ],
+  produto: [
+    { url: 'https://jocatorres.substack.com/feed', name: 'Joca Torres' },
+    { url: 'https://www.productgurus.com.br/feed', name: 'Product Gurus' },
+    { url: 'https://www.lennysnewsletter.com/feed', name: "Lenny's Newsletter" },
+    { url: 'https://pm3.com.br/blog/feed/', name: 'PM3' }
+  ],
+  agilidade: [
+    { url: 'https://caroli.org/feed/', name: 'Paulo Caroli' },
+    { url: 'https://read.felipecastro.com/feed', name: 'Felipe Castro' },
+    { url: 'https://blog.danielwildt.com/feed/', name: 'Daniel Wildt' },
+    { url: 'https://feed.infoq.com', name: 'InfoQ' }
+  ]
+};
 
 function unlock() {
   const input = document.getElementById('lock-input');
@@ -237,7 +259,6 @@ window.addEventListener('load', () => {
   }
 });
 
-// TOAST
 function showToast(msg, type = '') {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -245,80 +266,52 @@ function showToast(msg, type = '') {
   setTimeout(() => { t.className = ''; }, 3000);
 }
 
-// SAVE TO NOTION
-async function saveToNotion(btn, title, bullets, category) {
-  const token = getNotionToken();
-  if (!token) { showToast('Cole seu Token Notion no campo acima e salve!', 'error-toast'); return; }
-  btn.classList.add('saving');
-  btn.textContent = '⟳ Salvando...';
-  try {
-    const res = await fetch('https://api.notion.com/v1/pages', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${getNotionToken()}`,
-        'Content-Type': 'application/json',
-        'Notion-Version': '2022-06-28'
-      },
-      body: JSON.stringify({
-        parent: { database_id: NOTION_DB_ID },
-        properties: {
-          'Nome': { title: [{ text: { content: title } }] },
-          'Tipo': { select: { name: 'Artigos' } },
-          'Frase síntese': { rich_text: [{ text: { content: bullets.substring(0, 2000) } }] },
-          'Status': { status: { name: 'Não iniciada' } }
-        }
-      })
-    });
-    if (res.ok) {
-      btn.classList.remove('saving');
-      btn.classList.add('saved');
-      btn.textContent = '✓ Salvo no Segundo Cérebro';
-      btn.disabled = true;
-      showToast('✓ Artigo salvo em Recursos!', 'success');
-    } else {
-      const err = await res.json();
-      throw new Error(err.message || 'Erro ao salvar');
-    }
-  } catch(e) {
-    btn.classList.remove('saving');
-    btn.classList.add('error');
-    btn.textContent = '✕ Erro ao salvar';
-    setTimeout(() => { btn.className = 'save-notion-btn'; btn.textContent = '🧠 Salvar no Segundo Cérebro'; btn.disabled = false; }, 2000);
-    showToast('Erro: ' + e.message, 'error-toast');
-  }
+function getNotionToken() { return localStorage.getItem('notion_token') || ''; }
+
+function saveNotionToken() {
+  const t = document.getElementById('notion-token').value.trim();
+  if (t) { localStorage.setItem('notion_token', t); showToast('Token Notion salvo!', 'success'); }
 }
 
-const CATEGORIES = [
-  { key: 'tecnologia', label: 'Tecnologia', color: '#5b9cf6',
-    prompt: `Você é um curador de notícias. Retorne EXATAMENTE 4 notícias recentes e relevantes sobre tecnologia (IA, startups, big tech, inovação, healthtech, saúde digital) para um profissional brasileiro. Use como referência fontes como MIT Technology Review Brasil (mittechreview.com.br), MIT News, Canaltech, The Verge, TechCrunch, Wired, Axios Tech, Rock Health (healthtech), Healthcare IT News, Import AI (Jack Clark) e The Batch (Andrew Ng). Priorize notícias relevantes para o mercado brasileiro e para profissionais de tecnologia e saúde digital.\n\nUse EXATAMENTE este formato para cada notícia, sem variações, sem markdown, sem asteriscos:\n\nNOTICIA_INICIO\nTITULO: [título em português]\nBULLET: [ponto 1]\nBULLET: [ponto 2]\nBULLET: [ponto 3]\nNOTICIA_FIM\n\nRepita 4 vezes. Nada mais.` },
-  { key: 'saude', label: 'Saúde', color: '#3ecf8e',
-    prompt: `Você é um curador de notícias. Retorne EXATAMENTE 4 notícias recentes e relevantes sobre saúde (medicina, bem-estar, saúde digital, inovação médica, MIT Technology Review Brasil) para um profissional brasileiro.\n\nUse EXATAMENTE este formato, sem markdown, sem asteriscos:\n\nNOTICIA_INICIO\nTITULO: [título em português]\nBULLET: [ponto 1]\nBULLET: [ponto 2]\nBULLET: [ponto 3]\nNOTICIA_FIM\n\nRepita 4 vezes. Nada mais.` },
-  { key: 'produto', label: 'Gestão de Produtos', color: '#e8a838',
-    prompt: `Você é um curador de conteúdo. Retorne EXATAMENTE 4 conteúdos recentes e relevantes sobre gestão de produtos (frameworks, cases, discovery, métricas) para um profissional brasileiro. Use como referência fontes como Joca Torres (jocatorres.substack.com), Product Guru's (productgurus.com.br), Marty Cagan/SVPG (svpg.com), PM3 e Lenny's Newsletter.\n\nUse EXATAMENTE este formato, sem markdown, sem asteriscos:\n\nNOTICIA_INICIO\nTITULO: [título em português]\nBULLET: [ponto 1]\nBULLET: [ponto 2]\nBULLET: [ponto 3]\nNOTICIA_FIM\n\nRepita 4 vezes. Nada mais.` },
-  { key: 'agilidade', label: 'Agilidade', color: '#c97df5',
-    prompt: `Você é um curador de conteúdo. Retorne EXATAMENTE 4 conteúdos recentes e relevantes sobre agilidade (Scrum, Kanban, SAFe, OKR, times ágeis, transformação ágil) para um profissional brasileiro. Use como referência fontes como Paulo Caroli/caroli.org (Lean Inception, PBB), K21 (k21.global), Felipe Castro (OKR e outcomes), Daniel Wildt (cultura ágil, XP) e InfoQ.\n\nUse EXATAMENTE este formato, sem markdown, sem asteriscos:\n\nNOTICIA_INICIO\nTITULO: [título em português]\nBULLET: [ponto 1]\nBULLET: [ponto 2]\nBULLET: [ponto 3]\nNOTICIA_FIM\n\nRepita 4 vezes. Nada mais.` }
-];
+async function saveToNotion(btn, title, bullets, link) {
+  const token = getNotionToken();
+  if (!token) { showToast('Cole seu Token Notion e salve!', 'error-toast'); return; }
+  btn.classList.add('saving'); btn.textContent = '⟳ Salvando...';
+  try {
+    const props = {
+      'Nome': { title: [{ text: { content: title } }] },
+      'Tipo': { select: { name: 'Artigos' } },
+      'Frase síntese': { rich_text: [{ text: { content: bullets.substring(0, 2000) } }] },
+      'Status': { status: { name: 'Não iniciada' } }
+    };
+    if (link) props['url'] = { url: link };
+    const res = await fetch('https://api.notion.com/v1/pages', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Notion-Version': '2022-06-28' },
+      body: JSON.stringify({ parent: { database_id: NOTION_DB_ID }, properties: props })
+    });
+    if (res.ok) {
+      btn.classList.remove('saving'); btn.classList.add('saved');
+      btn.textContent = '✓ Salvo'; btn.disabled = true;
+      showToast('✓ Salvo em Recursos!', 'success');
+    } else { throw new Error('Erro na API'); }
+  } catch(e) {
+    btn.classList.remove('saving'); btn.classList.add('error-btn');
+    btn.textContent = '✕ Erro';
+    setTimeout(() => { btn.className = 'save-notion-btn'; btn.textContent = '🧠 Segundo Cérebro'; btn.disabled = false; }, 2000);
+  }
+}
 
 function init() {
   document.getElementById('header-date').textContent = new Date().toLocaleDateString('pt-BR', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   }).toUpperCase();
+  const savedGroq = localStorage.getItem('groq_key');
   const savedNotion = localStorage.getItem('notion_token');
+  if (savedGroq) document.getElementById('api-key').value = savedGroq;
   if (savedNotion) document.getElementById('notion-token').value = savedNotion;
-  const saved = localStorage.getItem('groq_key');
-  if (saved) {
-    document.getElementById('api-key').value = saved;
-    loadAll();
-  } else {
-    document.getElementById('banner').classList.add('visible');
-    setStatus('Cole sua chave Groq e clique em Salvar', false);
-    renderAllGrid(true);
-  }
-}
-
-function saveNotionToken() {
-  const t = document.getElementById('notion-token').value.trim();
-  if (t) { localStorage.setItem('notion_token', t); showToast('Token Notion salvo!', 'success'); }
+  if (savedGroq) { loadAll(); }
+  else { document.getElementById('banner').classList.add('visible'); setStatus('Cole sua chave Groq e clique em Salvar', false); renderAllGrid(true); }
 }
 
 function saveKey() {
@@ -345,7 +338,13 @@ function skeleton() {
 }
 
 function renderAllGrid(empty = false) {
-  document.getElementById('all-grid').innerHTML = CATEGORIES.map(cat => `
+  const CATS = [
+    { key: 'tecnologia', label: 'Tecnologia', color: '#5b9cf6' },
+    { key: 'saude', label: 'Saúde', color: '#3ecf8e' },
+    { key: 'produto', label: 'Produto', color: '#e8a838' },
+    { key: 'agilidade', label: 'Agilidade', color: '#c97df5' }
+  ];
+  document.getElementById('all-grid').innerHTML = CATS.map(cat => `
     <div class="cat-block">
       <div class="cat-block-header">
         <span class="cat-label" style="color:${cat.color}">${cat.label}</span>
@@ -355,19 +354,43 @@ function renderAllGrid(empty = false) {
     </div>`).join('');
 }
 
-function parseItems(text) {
-  const items = [];
-  const blocks = text.split('NOTICIA_INICIO').slice(1);
-  for (const block of blocks) {
-    const end = block.indexOf('NOTICIA_FIM');
-    const content = end > -1 ? block.substring(0, end) : block;
-    const titleMatch = content.match(/TITULO:\s*(.+)/);
-    if (!titleMatch) continue;
-    const title = titleMatch[1].trim().replace(/\*\*/g, '');
-    const bullets = [...content.matchAll(/BULLET:\s*(.+)/g)].map(m => '• ' + m[1].trim()).join('\n');
-    if (title && bullets) items.push({ title, bullets });
-  }
-  return items;
+// Fetch RSS via proxy
+async function fetchRSS(feedUrl, sourceName) {
+  try {
+    const proxyUrl = PROXY + encodeURIComponent(feedUrl);
+    const res = await fetch(proxyUrl);
+    const data = await res.json();
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(data.contents, 'text/xml');
+    const items = [...xml.querySelectorAll('item, entry')].slice(0, 3);
+    return items.map(item => ({
+      title: item.querySelector('title')?.textContent?.trim() || '',
+      link: item.querySelector('link')?.textContent?.trim() || item.querySelector('link')?.getAttribute('href') || '',
+      description: item.querySelector('description, summary, content')?.textContent?.replace(/<[^>]*>/g, '').substring(0, 500) || '',
+      source: sourceName
+    })).filter(i => i.title);
+  } catch(e) { return []; }
+}
+
+// Summarize with Groq
+async function summarizeWithGroq(item, apiKey, category) {
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 400,
+        temperature: 0.2,
+        messages: [
+          { role: 'system', content: 'Você resume artigos em português brasileiro de forma objetiva. Nunca use markdown ou asteriscos.' },
+          { role: 'user', content: `Resuma este artigo em 2-3 bullet points objetivos em português.\n\nTítulo: ${item.title}\nConteúdo: ${item.description}\n\nResponda APENAS com os bullets, um por linha, começando com •` }
+        ]
+      })
+    });
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content?.trim() || '';
+  } catch(e) { return ''; }
 }
 
 function renderItems(items, containerId) {
@@ -380,31 +403,54 @@ function renderItems(items, containerId) {
         <div class="news-title">${item.title}</div>
         <div class="news-chevron">▼</div>
       </div>
+      <div class="news-meta">
+        <span class="news-source">${item.source}</span>
+      </div>
       <div class="news-body">
-        <div class="news-bullets">${item.bullets}</div>
-        <button class="save-notion-btn" onclick="saveToNotion(this, ${JSON.stringify(item.title)}, ${JSON.stringify(item.bullets)}, '')">
-          🧠 Salvar no Segundo Cérebro
-        </button>
+        <div class="news-bullets">${item.bullets || 'Resumindo...'}</div>
+        <div class="news-actions">
+          ${item.link ? `<a class="news-link" href="${item.link}" target="_blank" rel="noopener">Ler artigo original ↗</a>` : ''}
+          <button class="save-notion-btn" onclick="saveToNotion(this, ${JSON.stringify(item.title)}, ${JSON.stringify(item.bullets || '')}, ${JSON.stringify(item.link || '')})">🧠 Segundo Cérebro</button>
+        </div>
       </div>
     </div>`).join('');
 }
 
-async function fetchCategory(cat, apiKey) {
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      max_tokens: 1500,
-      temperature: 0.3,
-      messages: [
-        { role: 'system', content: 'Você segue formatos de saída com precisão absoluta. Nunca use markdown, asteriscos ou texto fora do formato solicitado.' },
-        { role: 'user', content: cat.prompt }
-      ]
-    })
-  });
-  const data = await res.json();
-  return parseItems(data.choices?.[0]?.message?.content || '');
+async function loadCategory(catKey, apiKey) {
+  const feeds = FEEDS[catKey];
+  setStatus(`Carregando ${catKey}...`, true);
+
+  // Fetch all feeds in parallel
+  const allItems = (await Promise.all(feeds.map(f => fetchRSS(f.url, f.name)))).flat();
+
+  // Sort by recency (keep order from feeds) and limit
+  const topItems = allItems.slice(0, 6);
+
+  if (!topItems.length) {
+    const errHtml = `<div class="empty-state"><div class="icon">◌</div>Feeds indisponíveis</div>`;
+    document.getElementById(`all-list-${catKey}`).innerHTML = errHtml;
+    if (document.getElementById(`list-${catKey}`)) document.getElementById(`list-${catKey}`).innerHTML = errHtml;
+    document.getElementById(`badge-${catKey}`).textContent = '0';
+    return;
+  }
+
+  // Render titles first (fast)
+  const itemsWithBullets = topItems.map(i => ({ ...i, bullets: '' }));
+  renderItems(itemsWithBullets, `all-list-${catKey}`);
+  renderItems(itemsWithBullets, `list-${catKey}`);
+  document.getElementById(`badge-${catKey}`).textContent = topItems.length;
+  document.getElementById(`all-count-${catKey}`).textContent = `${topItems.length} itens`;
+  if (document.getElementById(`count-${catKey}`)) document.getElementById(`count-${catKey}`).textContent = `${topItems.length} itens`;
+
+  // Summarize each item with Groq (in parallel)
+  const summarized = await Promise.all(topItems.map(async item => ({
+    ...item,
+    bullets: await summarizeWithGroq(item, apiKey, catKey)
+  })));
+
+  // Re-render with bullets
+  renderItems(summarized, `all-list-${catKey}`);
+  renderItems(summarized, `list-${catKey}`);
 }
 
 async function loadAll() {
@@ -413,22 +459,11 @@ async function loadAll() {
   const btn = document.getElementById('refresh-btn');
   const icon = document.getElementById('refresh-icon');
   btn.disabled = true; icon.classList.add('spin');
-  setStatus('Buscando notícias...', true);
+  setStatus('Buscando feeds RSS...', true);
   renderAllGrid(false);
-  await Promise.all(CATEGORIES.map(async cat => {
-    try {
-      const items = await fetchCategory(cat, apiKey);
-      document.getElementById(`badge-${cat.key}`).textContent = items.length;
-      document.getElementById(`all-count-${cat.key}`).textContent = `${items.length} itens`;
-      if (document.getElementById(`count-${cat.key}`)) document.getElementById(`count-${cat.key}`).textContent = `${items.length} itens`;
-      renderItems(items, `all-list-${cat.key}`);
-      renderItems(items, `list-${cat.key}`);
-    } catch(e) {
-      const err = `<div class="empty-state"><div class="icon">✕</div>Erro ao carregar</div>`;
-      document.getElementById(`all-list-${cat.key}`).innerHTML = err;
-      if (document.getElementById(`list-${cat.key}`)) document.getElementById(`list-${cat.key}`).innerHTML = err;
-    }
-  }));
+
+  await Promise.all(Object.keys(FEEDS).map(cat => loadCategory(cat, apiKey)));
+
   const t = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   document.getElementById('last-updated').textContent = `Atualizado às ${t}`;
   setStatus('Briefing atualizado', false);
