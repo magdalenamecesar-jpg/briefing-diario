@@ -92,6 +92,8 @@
   .news-bullets { font-size: 13px; line-height: 1.9; color: #888; white-space: pre-line; }
 
   /* SAVE BUTTON */
+  .news-link { display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); text-decoration:none; border-bottom:1px solid var(--border); padding-bottom:2px; transition:color 0.2s,border-color 0.2s; }
+  .news-link:hover { color:var(--text); border-color:#555; }
   .save-notion-btn {
     display: inline-flex; align-items: center; gap: 6px;
     margin-top: 12px; padding: 7px 14px;
@@ -364,8 +366,10 @@ function parseItems(text) {
     const titleMatch = content.match(/TITULO:\s*(.+)/);
     if (!titleMatch) continue;
     const title = titleMatch[1].trim().replace(/\*\*/g, '');
+    const urlMatch = content.match(/URL:\s*(.+)/);
+    const url = urlMatch ? urlMatch[1].trim().replace(/\*\*/g, '') : '';
     const bullets = [...content.matchAll(/BULLET:\s*(.+)/g)].map(m => '• ' + m[1].trim()).join('\n');
-    if (title && bullets) items.push({ title, bullets });
+    if (title && bullets) items.push({ title, bullets, url: url.startsWith('http') ? url : '' });
   }
   return items;
 }
