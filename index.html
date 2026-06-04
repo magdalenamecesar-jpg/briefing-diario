@@ -209,7 +209,24 @@
 <script>
 const ACCESS_PASSWORD = 'briefing2026';
 const NOTION_DB_ID = '294478df-9648-80e6-b680-000b0f45ff2c';
-const PROXY = 'https://api.allorigins.win/get?url=';
+// Multiple proxy fallbacks for RSS fetching
+const PROXIES = [
+  url => `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&count=4`,
+];
+
+async function fetchRSSViaRss2Json(feedUrl, sourceName) {
+  try {
+    const res = await fetch(PROXIES[0](feedUrl));
+    const data = await res.json();
+    if (data.status !== 'ok' || !data.items?.length) return [];
+    return data.items.slice(0, 3).map(item => ({
+      title: item.title?.trim() || '',
+      link: item.link || item.url || '',
+      description: (item.description || item.content || '').replace(/<[^>]*>/g, '').substring(0, 500),
+      source: sourceName
+    })).filter(i => i.title);
+  } catch(e) { return []; }
+}
 
 // RSS feeds por categoria
 const FEEDS = {
@@ -354,22 +371,8 @@ function renderAllGrid(empty = false) {
     </div>`).join('');
 }
 
-// Fetch RSS via proxy
 async function fetchRSS(feedUrl, sourceName) {
-  try {
-    const proxyUrl = PROXY + encodeURIComponent(feedUrl);
-    const res = await fetch(proxyUrl);
-    const data = await res.json();
-    const parser = new DOMParser();
-    const xml = parser.parseFromString(data.contents, 'text/xml');
-    const items = [...xml.querySelectorAll('item, entry')].slice(0, 3);
-    return items.map(item => ({
-      title: item.querySelector('title')?.textContent?.trim() || '',
-      link: item.querySelector('link')?.textContent?.trim() || item.querySelector('link')?.getAttribute('href') || '',
-      description: item.querySelector('description, summary, content')?.textContent?.replace(/<[^>]*>/g, '').substring(0, 500) || '',
-      source: sourceName
-    })).filter(i => i.title);
-  } catch(e) { return []; }
+  return await fetchRSSViaRss2Json(feedUrl, sourceName);
 }
 
 // Summarize with Groq
