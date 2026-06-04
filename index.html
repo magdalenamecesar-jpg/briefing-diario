@@ -79,16 +79,32 @@
   .single-count { font-size: 11px; color: var(--muted); }
   .single-list { border: 1px solid var(--border); }
 
-  .news-item { padding: 18px 22px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
+  /* NEWS ITEM */
+  .news-item { padding: 18px 22px; border-bottom: 1px solid var(--border); transition: background 0.15s; }
   .news-item:last-child { border-bottom: none; }
-  .news-item:hover, .news-item.expanded { background: var(--surface); }
-  .news-item-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .news-item:hover { background: var(--surface); }
+  .news-item-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; cursor: pointer; }
   .news-title { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 600; line-height: 1.35; flex: 1; }
   .news-chevron { color: var(--muted); font-size: 9px; transition: transform 0.2s; flex-shrink: 0; margin-top: 5px; }
   .news-item.expanded .news-chevron { transform: rotate(180deg); }
   .news-body { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
   .news-item.expanded .news-body { display: block; }
   .news-bullets { font-size: 13px; line-height: 1.9; color: #888; white-space: pre-line; }
+
+  /* SAVE BUTTON */
+  .save-notion-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 12px; padding: 7px 14px;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted); border-radius: 5px; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .save-notion-btn:hover { border-color: #888; color: var(--text); }
+  .save-notion-btn.saving { opacity: 0.5; cursor: not-allowed; }
+  .save-notion-btn.saved { border-color: var(--saude); color: var(--saude); }
+  .save-notion-btn.error { border-color: #c0392b; color: #c0392b; }
 
   .skeleton-item { padding: 18px 22px; border-bottom: 1px solid var(--border); }
   .skeleton-item:last-child { border-bottom: none; }
@@ -103,6 +119,12 @@
   .prompt-banner.visible { display: block; }
   .prompt-banner strong { color: var(--text); }
 
+  /* TOAST */
+  #toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 10px 20px; border-radius: 8px; font-size: 12px; opacity: 0; transition: all 0.3s; z-index: 9999; white-space: nowrap; pointer-events: none; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #toast.success { border-color: var(--saude); color: var(--saude); }
+  #toast.error-toast { border-color: #c0392b; color: #c0392b; }
+
   footer { padding: 16px 56px; border-top: 1px solid var(--border); font-size: 10px; color: var(--muted); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; letter-spacing: 0.05em; text-transform: uppercase; margin-top: 32px; }
 
   @media (max-width: 640px) {
@@ -114,6 +136,8 @@
 </style>
 </head>
 <body>
+
+<div id="toast"></div>
 
 <div id="lock-screen">
   <div class="lock-icon">◉</div>
@@ -135,6 +159,10 @@
     <div class="api-key-wrap">
       <input class="api-key-input" id="api-key" type="password" placeholder="Chave Groq"/>
       <button class="btn btn-ghost" onclick="saveKey()">Salvar</button>
+    </div>
+    <div class="api-key-wrap">
+      <input class="api-key-input" id="notion-token" type="password" placeholder="Token Notion (opcional)"/>
+      <button class="btn btn-ghost" onclick="saveNotionToken()">Salvar</button>
     </div>
     <button class="btn" id="refresh-btn" onclick="loadAll()">
       <span id="refresh-icon">↻</span> Atualizar
@@ -185,6 +213,8 @@
 
 <script>
 const ACCESS_PASSWORD = 'briefing2026';
+function getNotionToken() { return localStorage.getItem('notion_token') || ''; }
+const NOTION_DB_ID = '294478df-9648-80e6-b680-000b0f45ff2c'; // Recursos
 
 function unlock() {
   const input = document.getElementById('lock-input');
@@ -207,65 +237,74 @@ window.addEventListener('load', () => {
   }
 });
 
+// TOAST
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (type ? ' ' + type : '');
+  setTimeout(() => { t.className = ''; }, 3000);
+}
+
+// SAVE TO NOTION
+async function saveToNotion(btn, title, bullets, category) {
+  const token = getNotionToken();
+  if (!token) { showToast('Cole seu Token Notion no campo acima e salve!', 'error-toast'); return; }
+  btn.classList.add('saving');
+  btn.textContent = '⟳ Salvando...';
+  try {
+    const res = await fetch('https://api.notion.com/v1/pages', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${getNotionToken()}`,
+        'Content-Type': 'application/json',
+        'Notion-Version': '2022-06-28'
+      },
+      body: JSON.stringify({
+        parent: { database_id: NOTION_DB_ID },
+        properties: {
+          'Nome': { title: [{ text: { content: title } }] },
+          'Tipo': { select: { name: 'Artigos' } },
+          'Frase síntese': { rich_text: [{ text: { content: bullets.substring(0, 2000) } }] },
+          'Status': { status: { name: 'Não iniciada' } }
+        }
+      })
+    });
+    if (res.ok) {
+      btn.classList.remove('saving');
+      btn.classList.add('saved');
+      btn.textContent = '✓ Salvo no Segundo Cérebro';
+      btn.disabled = true;
+      showToast('✓ Artigo salvo em Recursos!', 'success');
+    } else {
+      const err = await res.json();
+      throw new Error(err.message || 'Erro ao salvar');
+    }
+  } catch(e) {
+    btn.classList.remove('saving');
+    btn.classList.add('error');
+    btn.textContent = '✕ Erro ao salvar';
+    setTimeout(() => { btn.className = 'save-notion-btn'; btn.textContent = '🧠 Salvar no Segundo Cérebro'; btn.disabled = false; }, 2000);
+    showToast('Erro: ' + e.message, 'error-toast');
+  }
+}
+
 const CATEGORIES = [
   { key: 'tecnologia', label: 'Tecnologia', color: '#5b9cf6',
-    prompt: `Você é um curador de notícias. Retorne EXATAMENTE 4 notícias recentes e relevantes sobre tecnologia (IA, startups, big tech, inovação) para um profissional brasileiro. Use como referência fontes como MIT Technology Review Brasil (mittechreview.com.br), MIT News e Canaltech.
-
-Use EXATAMENTE este formato para cada notícia, sem variações, sem markdown, sem asteriscos, sem texto extra:
-
-NOTICIA_INICIO
-TITULO: [escreva aqui o título em português]
-BULLET: [ponto 1 objetivo em português]
-BULLET: [ponto 2 objetivo em português]
-BULLET: [ponto 3 objetivo em português]
-NOTICIA_FIM
-
-Repita o bloco acima 4 vezes. Nada mais.` },
+    prompt: `Você é um curador de notícias. Retorne EXATAMENTE 4 notícias recentes e relevantes sobre tecnologia (IA, startups, big tech, inovação, MIT Technology Review Brasil) para um profissional brasileiro.\n\nUse EXATAMENTE este formato para cada notícia, sem variações, sem markdown, sem asteriscos:\n\nNOTICIA_INICIO\nTITULO: [título em português]\nBULLET: [ponto 1]\nBULLET: [ponto 2]\nBULLET: [ponto 3]\nNOTICIA_FIM\n\nRepita 4 vezes. Nada mais.` },
   { key: 'saude', label: 'Saúde', color: '#3ecf8e',
-    prompt: `Você é um curador de notícias. Retorne EXATAMENTE 4 notícias recentes e relevantes sobre saúde (medicina, bem-estar, saúde digital, inovação médica) para um profissional brasileiro. Use como referência fontes como MIT Technology Review Brasil (mittechreview.com.br), G1 Saúde e Einstein Saúde.
-
-Use EXATAMENTE este formato para cada notícia, sem variações, sem markdown, sem asteriscos, sem texto extra:
-
-NOTICIA_INICIO
-TITULO: [escreva aqui o título em português]
-BULLET: [ponto 1 objetivo em português]
-BULLET: [ponto 2 objetivo em português]
-BULLET: [ponto 3 objetivo em português]
-NOTICIA_FIM
-
-Repita o bloco acima 4 vezes. Nada mais.` },
+    prompt: `Você é um curador de notícias. Retorne EXATAMENTE 4 notícias recentes e relevantes sobre saúde (medicina, bem-estar, saúde digital, inovação médica, MIT Technology Review Brasil) para um profissional brasileiro.\n\nUse EXATAMENTE este formato, sem markdown, sem asteriscos:\n\nNOTICIA_INICIO\nTITULO: [título em português]\nBULLET: [ponto 1]\nBULLET: [ponto 2]\nBULLET: [ponto 3]\nNOTICIA_FIM\n\nRepita 4 vezes. Nada mais.` },
   { key: 'produto', label: 'Gestão de Produtos', color: '#e8a838',
-    prompt: `Você é um curador de conteúdo. Retorne EXATAMENTE 4 conteúdos recentes e relevantes sobre gestão de produtos (frameworks, cases, discovery, métricas, estratégia) para um profissional brasileiro. Use como referência fontes como PM3, Lenny's Newsletter e MIT Sloan Management Review.
-
-Use EXATAMENTE este formato para cada item, sem variações, sem markdown, sem asteriscos, sem texto extra:
-
-NOTICIA_INICIO
-TITULO: [escreva aqui o título em português]
-BULLET: [ponto 1 objetivo em português]
-BULLET: [ponto 2 objetivo em português]
-BULLET: [ponto 3 objetivo em português]
-NOTICIA_FIM
-
-Repita o bloco acima 4 vezes. Nada mais.` },
+    prompt: `Você é um curador de conteúdo. Retorne EXATAMENTE 4 conteúdos recentes e relevantes sobre gestão de produtos (frameworks, cases, discovery, métricas, PM3, Lenny's Newsletter) para um profissional brasileiro.\n\nUse EXATAMENTE este formato, sem markdown, sem asteriscos:\n\nNOTICIA_INICIO\nTITULO: [título em português]\nBULLET: [ponto 1]\nBULLET: [ponto 2]\nBULLET: [ponto 3]\nNOTICIA_FIM\n\nRepita 4 vezes. Nada mais.` },
   { key: 'agilidade', label: 'Agilidade', color: '#c97df5',
-    prompt: `Você é um curador de conteúdo. Retorne EXATAMENTE 4 conteúdos recentes e relevantes sobre agilidade (Scrum, Kanban, SAFe, OKR, times ágeis) para um profissional brasileiro. Use como referência fontes como K21, InfoQ e Agile Alliance.
-
-Use EXATAMENTE este formato para cada item, sem variações, sem markdown, sem asteriscos, sem texto extra:
-
-NOTICIA_INICIO
-TITULO: [escreva aqui o título em português]
-BULLET: [ponto 1 objetivo em português]
-BULLET: [ponto 2 objetivo em português]
-BULLET: [ponto 3 objetivo em português]
-NOTICIA_FIM
-
-Repita o bloco acima 4 vezes. Nada mais.` }
+    prompt: `Você é um curador de conteúdo. Retorne EXATAMENTE 4 conteúdos recentes e relevantes sobre agilidade (Scrum, Kanban, SAFe, OKR, K21, InfoQ) para um profissional brasileiro.\n\nUse EXATAMENTE este formato, sem markdown, sem asteriscos:\n\nNOTICIA_INICIO\nTITULO: [título em português]\nBULLET: [ponto 1]\nBULLET: [ponto 2]\nBULLET: [ponto 3]\nNOTICIA_FIM\n\nRepita 4 vezes. Nada mais.` }
 ];
 
 function init() {
   document.getElementById('header-date').textContent = new Date().toLocaleDateString('pt-BR', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   }).toUpperCase();
+  const savedNotion = localStorage.getItem('notion_token');
+  if (savedNotion) document.getElementById('notion-token').value = savedNotion;
   const saved = localStorage.getItem('groq_key');
   if (saved) {
     document.getElementById('api-key').value = saved;
@@ -275,6 +314,11 @@ function init() {
     setStatus('Cole sua chave Groq e clique em Salvar', false);
     renderAllGrid(true);
   }
+}
+
+function saveNotionToken() {
+  const t = document.getElementById('notion-token').value.trim();
+  if (t) { localStorage.setItem('notion_token', t); showToast('Token Notion salvo!', 'success'); }
 }
 
 function saveKey() {
@@ -331,12 +375,17 @@ function renderItems(items, containerId) {
   if (!el) return;
   if (!items || !items.length) { el.innerHTML = `<div class="empty-state"><div class="icon">◌</div>Nenhum item encontrado</div>`; return; }
   el.innerHTML = items.map(item => `
-    <div class="news-item" onclick="this.classList.toggle('expanded')">
-      <div class="news-item-top">
+    <div class="news-item">
+      <div class="news-item-top" onclick="this.parentElement.classList.toggle('expanded')">
         <div class="news-title">${item.title}</div>
         <div class="news-chevron">▼</div>
       </div>
-      <div class="news-body"><div class="news-bullets">${item.bullets}</div></div>
+      <div class="news-body">
+        <div class="news-bullets">${item.bullets}</div>
+        <button class="save-notion-btn" onclick="saveToNotion(this, ${JSON.stringify(item.title)}, ${JSON.stringify(item.bullets)}, '')">
+          🧠 Salvar no Segundo Cérebro
+        </button>
+      </div>
     </div>`).join('');
 }
 
@@ -349,7 +398,7 @@ async function fetchCategory(cat, apiKey) {
       max_tokens: 1500,
       temperature: 0.3,
       messages: [
-        { role: 'system', content: 'Você é um assistente que segue formatos de saída com precisão absoluta. Nunca use markdown, asteriscos ou texto fora do formato solicitado.' },
+        { role: 'system', content: 'Você segue formatos de saída com precisão absoluta. Nunca use markdown, asteriscos ou texto fora do formato solicitado.' },
         { role: 'user', content: cat.prompt }
       ]
     })
