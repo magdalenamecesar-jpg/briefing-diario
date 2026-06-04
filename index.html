@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Briefing Diário</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0f;
+    --surface: #161618;
+    --surface2: #1e1e21;
+    --border: #2a2a2e;
+    --text: #f0ede8;
+    --muted: #6b6870;
+    --tech: #4f8ef7;
+    --saude: #3ecf8e;
+    --produto: #f5a623;
+    --agil: #d966f7;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; min-height: 100vh; }
+
+  header {
+    padding: 32px 48px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+  }
+  .header-left h1 { font-family: 'Playfair Display', serif; font-size: clamp(24px,4vw,38px); font-weight: 900; letter-spacing: -0.02em; }
+  .header-left .date { font-size: 12px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .refresh-btn {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+    padding: 9px 18px; border-radius: 8px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .refresh-btn:hover { background: #252528; }
+  .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .spin { animation: spin 1s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .tabs {
+    display: flex; padding: 0 48px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    padding: 14px 22px; font-size: 12px; font-weight: 500;
+    color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent;
+    white-space: nowrap; transition: all 0.2s; letter-spacing: 0.05em; text-transform: uppercase;
+  }
+  .tab:hover { color: var(--text); }
+  .tab[data-cat="tudo"].active { border-color: var(--text); color: var(--text); }
+  .tab[data-cat="tecnologia"].active { border-color: var(--tech); color: var(--tech); }
+  .tab[data-cat="saude"].active { border-color: var(--saude); color: var(--saude); }
+  .tab[data-cat="produto"].active { border-color: var(--produto); color: var(--produto); }
+  .tab[data-cat="agilidade"].active { border-color: var(--agil); color: var(--agil); }
+  .badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 17px; height: 17px; border-radius: 50%; font-size: 9px; font-weight: 700;
+    margin-left: 5px; background: var(--surface2); color: var(--muted);
+  }
+
+  main { padding: 28px 48px; }
+  .section { display: none; animation: fadeIn 0.3s ease; }
+  .section.visible { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+  .all-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+  .cat-block { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .cat-block-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .cat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .cat-block-header h2 { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; }
+
+  .single-header { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+  .single-header h2 { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; }
+
+  .news-item { padding: 14px 18px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
+  .news-item:last-child { border-bottom: none; }
+  .news-item:hover, .news-item.expanded { background: var(--surface2); }
+  .news-item-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .news-title { font-size: 13px; font-weight: 500; line-height: 1.45; flex: 1; }
+  .news-chevron { color: var(--muted); font-size: 9px; transition: transform 0.2s; flex-shrink: 0; margin-top: 3px; }
+  .news-item.expanded .news-chevron { transform: rotate(180deg); }
+  .news-meta { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .news-source { font-size: 11px; color: var(--muted); }
+  .news-tag { font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+  .news-summary { display: none; font-size: 12px; line-height: 1.7; color: #a8a4a0; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+  .news-item.expanded .news-summary { display: block; }
+  .news-link { display: inline-block; margin-top: 8px; font-size: 11px; color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 1px; transition: color 0.2s; }
+  .news-link:hover { color: var(--text); }
+
+  .skel { background: linear-gradient(90deg, var(--surface2) 25%, #252528 50%, var(--surface2) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 4px; }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  .skeleton-item { padding: 14px 18px; border-bottom: 1px solid var(--border); }
+  .skeleton-item:last-child { border-bottom: none; }
+  .skel-line { height: 11px; margin-bottom: 7px; }
+  .w-full { width: 100%; } .w-3q { width: 75%; } .w-half { width: 50%; } .w-q { width: 25%; }
+
+  .error-box { padding: 18px; text-align: center; color: var(--muted); font-size: 12px; }
+
+  footer { padding: 16px 48px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+
+  @media (max-width: 600px) {
+    header, .tabs, main, footer { padding-left: 20px; padding-right: 20px; }
+    .all-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Briefing Diário</h1>
+    <div class="date" id="header-date"></div>
+  </div>
+  <button class="refresh-btn" id="refresh-btn" onclick="loadAll()">
+    <span id="refresh-icon">↻</span> Atualizar
+  </button>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-cat="tudo" onclick="switchTab('tudo')">Tudo</div>
+  <div class="tab" data-cat="tecnologia" onclick="switchTab('tecnologia')">Tecnologia <span class="badge" id="badge-tecnologia">–</span></div>
+  <div class="tab" data-cat="saude" onclick="switchTab('saude')">Saúde <span class="badge" id="badge-saude">–</span></div>
+  <div class="tab" data-cat="produto" onclick="switchTab('produto')">Produto <span class="badge" id="badge-produto">–</span></div>
+  <div class="tab" data-cat="agilidade" onclick="switchTab('agilidade')">Agilidade <span class="badge" id="badge-agilidade">–</span></div>
+</div>
+
+<main>
+  <div class="section visible" id="section-tudo"><div class="all-grid" id="all-grid"></div></div>
+  <div class="section" id="section-tecnologia">
+    <div class="single-header"><span style="color:var(--tech);font-size:20px">⬡</span><h2 style="color:var(--tech)">Tecnologia</h2></div>
+    <div class="cat-block"><div class="news-list" id="list-tecnologia"></div></div>
+  </div>
+  <div class="section" id="section-saude">
+    <div class="single-header"><span style="color:var(--saude);font-size:20px">⬡</span><h2 style="color:var(--saude)">Saúde</h2></div>
+    <div class="cat-block"><div class="news-list" id="list-saude"></div></div>
+  </div>
+  <div class="section" id="section-produto">
+    <div class="single-header"><span style="color:var(--produto);font-size:20px">⬡</span><h2 style="color:var(--produto)">Gestão de Produtos</h2></div>
+    <div class="cat-block"><div class="news-list" id="list-produto"></div></div>
+  </div>
+  <div class="section" id="section-agilidade">
+    <div class="single-header"><span style="color:var(--agil);font-size:20px">⬡</span><h2 style="color:var(--agil)">Agilidade</h2></div>
+    <div class="cat-block"><div class="news-list" id="list-agilidade"></div></div>
+  </div>
+</main>
+
+<footer>
+  <span>Briefing Diário · RSS + IA</span>
+  <span id="last-updated"></span>
+</footer>
+
+<script>
+const PROXY = 'https://api.rss2json.com/v1/api.json?rss_url=';
+
+const FEEDS = [
+  { key: 'tecnologia', label: 'Tecnologia', color: '#4f8ef7', sources: [
+    { name: 'MIT News', url: 'https://news.mit.edu/rss/feed' },
+    { name: 'MIT Tech Review', url: 'https://www.technologyreview.com/feed/' },
+    { name: 'MIT Tech Review BR', url: 'https://mittechreview.com.br/feed/' },
+    { name: 'Canaltech', url: 'https://canaltech.com.br/rss/' }
+  ]},
+  { key: 'saude', label: 'Saúde', color: '#3ecf8e', sources: [
+    { name: 'G1 Saúde', url: 'https://g1.globo.com/rss/g1/ciencia-e-saude/' }
+  ]},
+  { key: 'produto', label: 'Produto', color: '#f5a623', sources: [
+    { name: 'MIT SMR', url: 'https://feeds.feedburner.com/mitsmr' },
+    { name: "Lenny's Newsletter", url: 'https://www.lennysnewsletter.com/feed' },
+    { name: 'PM3', url: 'https://pm3.com.br/blog/feed/' }
+  ]},
+  { key: 'agilidade', label: 'Agilidade', color: '#d966f7', sources: [
+    { name: 'InfoQ', url: 'https://feed.infoq.com' }
+  ]}
+];
+
+let allData = {};
+
+document.getElementById('header-date').textContent = new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+function switchTab(cat) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.tab[data-cat="${cat}"]`).classList.add('active');
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+  document.getElementById(`section-${cat}`).classList.add('visible');
+}
+
+function skeleton() {
+  return Array(3).fill(`<div class="skeleton-item"><div class="skel skel-line w-full"></div><div class="skel skel-line w-3q"></div><div class="skel skel-line w-q"></div></div>`).join('');
+}
+
+function renderAllGrid() {
+  document.getElementById('all-grid').innerHTML = FEEDS.map(f => `
+    <div class="cat-block">
+      <div class="cat-block-header">
+        <div class="cat-dot" style="background:${f.color}"></div>
+        <h2>${f.label}</h2>
+      </div>
+      <div class="news-list" id="all-list-${f.key}">${skeleton()}</div>
+    </div>`).join('');
+}
+
+function stripHtml(html) {
+  const d = document.createElement('div');
+  d.innerHTML = html || '';
+  return d.textContent || '';
+}
+
+function renderItems(items, containerId, color, sourceName) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (!items || !items.length) { el.innerHTML = `<div class="error-box">Nenhum item encontrado.</div>`; return; }
+  el.innerHTML = items.slice(0, 4).map(item => `
+    <div class="news-item" onclick="this.classList.toggle('expanded')">
+      <div class="news-item-top">
+        <div class="news-title">${item.title || 'Sem título'}</div>
+        <div class="news-chevron">▼</div>
+      </div>
+      <div class="news-meta">
+        <span class="news-source">${sourceName || item.author || ''}</span>
+        ${item.categories && item.categories[0] ? `<span class="news-tag" style="background:${color}22;color:${color}">${item.categories[0]}</span>` : ''}
+      </div>
+      <div class="news-summary">
+        ${stripHtml(item.description).substring(0, 300)}...
+        ${item.link ? `<a class="news-link" href="${item.link}" target="_blank">Ler artigo completo ↗</a>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+async function fetchFeed(url, sourceName) {
+  try {
+    const res = await fetch(`${PROXY}${encodeURIComponent(url)}&count=4`);
+    const data = await res.json();
+    if (data.status === 'ok') return { items: data.items, source: sourceName };
+    return { items: [], source: sourceName };
+  } catch { return { items: [], source: sourceName }; }
+}
+
+async function loadCategory(feed) {
+  document.getElementById(`list-${feed.key}`).innerHTML = skeleton();
+
+  const results = await Promise.all(feed.sources.map(s => fetchFeed(s.url, s.name)));
+  const allItems = results.flatMap(r => r.items.map(i => ({ ...i, _source: r.source })));
+  allItems.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+
+  allData[feed.key] = allItems;
+  document.getElementById(`badge-${feed.key}`).textContent = Math.min(allItems.length, 4);
+
+  renderItems(allItems, `all-list-${feed.key}`, feed.color, null);
+  renderItems(allItems, `list-${feed.key}`, feed.color, null);
+}
+
+async function loadAll() {
+  const btn = document.getElementById('refresh-btn');
+  const icon = document.getElementById('refresh-icon');
+  btn.disabled = true;
+  icon.classList.add('spin');
+  renderAllGrid();
+  await Promise.all(FEEDS.map(loadCategory));
+  const t = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('last-updated').textContent = `Atualizado às ${t}`;
+  btn.disabled = false;
+  icon.classList.remove('spin');
+}
+
+loadAll();
+</script>
+</body>
+</html>
