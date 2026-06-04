@@ -7,49 +7,28 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #080808;
-    --surface: #111111;
-    --surface2: #1a1a1a;
-    --border: #222222;
-    --text: #e8e4de;
-    --muted: #555;
-    --tech: #5b9cf6;
-    --saude: #3ecf8e;
-    --produto: #e8a838;
-    --agil: #c97df5;
+    --bg: #080808; --surface: #111111; --surface2: #1a1a1a; --border: #222222;
+    --text: #e8e4de; --muted: #555;
+    --tech: #5b9cf6; --saude: #3ecf8e; --produto: #e8a838; --agil: #c97df5;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; font-weight: 400; min-height: 100vh; overflow-x: hidden; }
   body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 1000; opacity: 0.4; }
 
-  /* LOCK SCREEN */
-  #lock-screen {
-    position: fixed; inset: 0; background: var(--bg);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 999; flex-direction: column; gap: 24px;
-  }
+  /* LOCK */
+  #lock-screen { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 999; flex-direction: column; gap: 20px; }
   #lock-screen.hidden { display: none; }
-  .lock-icon { font-size: 32px; opacity: 0.3; margin-bottom: 8px; }
-  .lock-title { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-style: italic; color: var(--text); }
-  .lock-sub { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
-  .lock-form { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 280px; }
-  .lock-input {
-    width: 100%; background: var(--surface2); border: 1px solid var(--border);
-    color: var(--text); padding: 12px 16px; border-radius: 6px;
-    font-family: 'Syne', sans-serif; font-size: 13px; outline: none;
-    text-align: center; letter-spacing: 0.15em; transition: border-color 0.2s;
-  }
+  .lock-icon { font-size: 28px; opacity: 0.25; margin-bottom: 4px; }
+  .lock-title { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-style: italic; }
+  .lock-sub { font-size: 10px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; }
+  .lock-form { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 260px; margin-top: 8px; }
+  .lock-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 12px 16px; border-radius: 6px; font-family: 'Syne', sans-serif; font-size: 13px; outline: none; text-align: center; letter-spacing: 0.1em; transition: border-color 0.2s; }
   .lock-input:focus { border-color: #444; }
   .lock-input.error { border-color: #c0392b; animation: shake 0.3s; }
   @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
-  .lock-btn {
-    width: 100%; background: var(--text); color: var(--bg);
-    padding: 12px; border-radius: 6px; border: none; cursor: pointer;
-    font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
-    letter-spacing: 0.15em; text-transform: uppercase; transition: opacity 0.2s;
-  }
+  .lock-btn { width: 100%; background: var(--text); color: var(--bg); padding: 12px; border-radius: 6px; border: none; cursor: pointer; font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; transition: opacity 0.2s; }
   .lock-btn:hover { opacity: 0.85; }
-  .lock-error { font-size: 11px; color: #c0392b; letter-spacing: 0.05em; height: 14px; }
+  .lock-error { font-size: 11px; color: #c0392b; height: 14px; }
 
   /* HEADER */
   header { padding: 40px 56px 28px; display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 24px; border-bottom: 1px solid var(--border); }
@@ -97,19 +76,19 @@
 
   .single-header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
   .single-title { font-family: 'Cormorant Garamond', serif; font-size: 40px; font-weight: 600; font-style: italic; letter-spacing: -0.02em; }
-  .single-count { font-size: 11px; color: var(--muted); letter-spacing: 0.05em; }
+  .single-count { font-size: 11px; color: var(--muted); }
   .single-list { border: 1px solid var(--border); }
 
   .news-item { padding: 18px 22px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
   .news-item:last-child { border-bottom: none; }
   .news-item:hover, .news-item.expanded { background: var(--surface); }
   .news-item-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-  .news-title { font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 600; line-height: 1.35; flex: 1; }
+  .news-title { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 600; line-height: 1.35; flex: 1; }
   .news-chevron { color: var(--muted); font-size: 9px; transition: transform 0.2s; flex-shrink: 0; margin-top: 5px; }
   .news-item.expanded .news-chevron { transform: rotate(180deg); }
   .news-body { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
   .news-item.expanded .news-body { display: block; }
-  .news-bullets { font-size: 13px; line-height: 1.8; color: #999; white-space: pre-line; }
+  .news-bullets { font-size: 13px; line-height: 1.9; color: #888; white-space: pre-line; }
 
   .skeleton-item { padding: 18px 22px; border-bottom: 1px solid var(--border); }
   .skeleton-item:last-child { border-bottom: none; }
@@ -118,10 +97,9 @@
   .sk-line { height: 10px; margin-bottom: 8px; }
   .w-full{width:100%} .w-3q{width:75%} .w-q{width:28%}
 
-  .empty-state { padding: 40px 22px; text-align: center; color: var(--muted); font-size: 12px; letter-spacing: 0.05em; }
-  .empty-state .icon { font-size: 28px; margin-bottom: 10px; opacity: 0.3; }
-
-  .prompt-banner { margin-bottom: 32px; padding: 20px 24px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--text); font-size: 12px; color: var(--muted); line-height: 1.7; display: none; }
+  .empty-state { padding: 40px 22px; text-align: center; color: var(--muted); font-size: 12px; }
+  .empty-state .icon { font-size: 24px; margin-bottom: 10px; opacity: 0.3; }
+  .prompt-banner { margin-bottom: 28px; padding: 18px 22px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--text); font-size: 12px; color: var(--muted); line-height: 1.7; display: none; }
   .prompt-banner.visible { display: block; }
   .prompt-banner strong { color: var(--text); }
 
@@ -130,26 +108,24 @@
   @media (max-width: 640px) {
     header, .status-bar, .tabs, main, footer { padding-left: 20px; padding-right: 20px; }
     .all-grid { grid-template-columns: 1fr; }
-    .api-key-input { width: 160px; }
+    .api-key-input { width: 150px; }
     h1 { font-size: 32px; }
   }
 </style>
 </head>
 <body>
 
-<!-- LOCK SCREEN -->
 <div id="lock-screen">
   <div class="lock-icon">◉</div>
   <div class="lock-title">Briefing Diário</div>
   <div class="lock-sub">Acesso restrito</div>
   <div class="lock-form">
-    <input class="lock-input" id="lock-input" type="password" placeholder="Senha de acesso" onkeydown="if(event.key==='Enter')unlock()" autocomplete="off" />
+    <input class="lock-input" id="lock-input" type="password" placeholder="Senha de acesso" onkeydown="if(event.key==='Enter')unlock()" autocomplete="off"/>
     <div class="lock-error" id="lock-error"></div>
     <button class="lock-btn" onclick="unlock()">Entrar</button>
   </div>
 </div>
 
-<!-- APP -->
 <header>
   <div class="header-left">
     <div class="header-eyebrow" id="header-date"></div>
@@ -157,7 +133,7 @@
   </div>
   <div class="header-right">
     <div class="api-key-wrap">
-      <input class="api-key-input" id="api-key" type="password" placeholder="Chave Groq" />
+      <input class="api-key-input" id="api-key" type="password" placeholder="Chave Groq"/>
       <button class="btn btn-ghost" onclick="saveKey()">Salvar</button>
     </div>
     <button class="btn" id="refresh-btn" onclick="loadAll()">
@@ -181,7 +157,7 @@
 
 <main>
   <div class="prompt-banner" id="banner">
-    <strong>Para começar:</strong> Cole sua chave da API do Groq no campo acima e clique em <strong>Salvar</strong>, depois em <strong>Atualizar</strong>. Sua chave fica salva apenas no seu navegador.
+    <strong>Para começar:</strong> Cole sua chave Groq no campo acima, clique em <strong>Salvar</strong> e depois em <strong>Atualizar</strong>. A chave fica salva apenas no seu navegador.
   </div>
   <div class="section visible" id="section-tudo"><div class="all-grid" id="all-grid"></div></div>
   <div class="section" id="section-tecnologia">
@@ -204,12 +180,10 @@
 
 <footer>
   <span>Briefing Diário · Groq AI</span>
-  <span>llama-3.1-8b-instant</span>
+  <span>llama-3.3-70b-versatile</span>
 </footer>
 
 <script>
-// ── SENHA DE ACESSO ──────────────────────────────────────────
-// Para alterar a senha, mude o valor abaixo:
 const ACCESS_PASSWORD = 'briefing2026';
 
 function unlock() {
@@ -222,7 +196,7 @@ function unlock() {
   } else {
     input.classList.add('error');
     error.textContent = 'Senha incorreta';
-    setTimeout(() => { input.classList.remove('error'); input.value = ''; }, 600);
+    setTimeout(() => { input.classList.remove('error'); input.value = ''; error.textContent = ''; }, 700);
   }
 }
 
@@ -233,23 +207,65 @@ window.addEventListener('load', () => {
   }
 });
 
-// ── CATEGORIAS ───────────────────────────────────────────────
 const CATEGORIES = [
   { key: 'tecnologia', label: 'Tecnologia', color: '#5b9cf6',
-    prompt: `Você é um curador de notícias de tecnologia para um profissional brasileiro. Traga 4 notícias ou tendências relevantes e recentes sobre tecnologia: IA, startups, big tech, produtos digitais, inovação.\nPara cada item, escreva um título em português e 2-3 bullet points objetivos.\nFormato EXATO para cada notícia (repita 4 vezes):\nTÍTULO: [título em português]\n• bullet 1\n• bullet 2\n• bullet 3\n---` },
+    prompt: `Você é um curador de notícias. Retorne EXATAMENTE 4 notícias recentes e relevantes sobre tecnologia (IA, startups, big tech, inovação) para um profissional brasileiro.
+
+Use EXATAMENTE este formato para cada notícia, sem variações, sem markdown, sem asteriscos, sem texto extra:
+
+NOTICIA_INICIO
+TITULO: [escreva aqui o título em português]
+BULLET: [ponto 1 objetivo em português]
+BULLET: [ponto 2 objetivo em português]
+BULLET: [ponto 3 objetivo em português]
+NOTICIA_FIM
+
+Repita o bloco acima 4 vezes. Nada mais.` },
   { key: 'saude', label: 'Saúde', color: '#3ecf8e',
-    prompt: `Você é um curador de notícias de saúde para um profissional brasileiro. Traga 4 notícias ou tendências relevantes e recentes sobre saúde: medicina, bem-estar, inovação médica, saúde digital.\nPara cada item, escreva um título em português e 2-3 bullet points objetivos.\nFormato EXATO para cada notícia (repita 4 vezes):\nTÍTULO: [título em português]\n• bullet 1\n• bullet 2\n• bullet 3\n---` },
+    prompt: `Você é um curador de notícias. Retorne EXATAMENTE 4 notícias recentes e relevantes sobre saúde (medicina, bem-estar, saúde digital, inovação médica) para um profissional brasileiro.
+
+Use EXATAMENTE este formato para cada notícia, sem variações, sem markdown, sem asteriscos, sem texto extra:
+
+NOTICIA_INICIO
+TITULO: [escreva aqui o título em português]
+BULLET: [ponto 1 objetivo em português]
+BULLET: [ponto 2 objetivo em português]
+BULLET: [ponto 3 objetivo em português]
+NOTICIA_FIM
+
+Repita o bloco acima 4 vezes. Nada mais.` },
   { key: 'produto', label: 'Gestão de Produtos', color: '#e8a838',
-    prompt: `Você é um curador de conteúdo de gestão de produtos para um profissional brasileiro. Traga 4 conteúdos relevantes e recentes sobre product management: frameworks, cases, estratégia, discovery, métricas.\nPara cada item, escreva um título em português e 2-3 bullet points objetivos.\nFormato EXATO para cada notícia (repita 4 vezes):\nTÍTULO: [título em português]\n• bullet 1\n• bullet 2\n• bullet 3\n---` },
+    prompt: `Você é um curador de conteúdo. Retorne EXATAMENTE 4 conteúdos recentes e relevantes sobre gestão de produtos (frameworks, cases, discovery, métricas, estratégia) para um profissional brasileiro.
+
+Use EXATAMENTE este formato para cada item, sem variações, sem markdown, sem asteriscos, sem texto extra:
+
+NOTICIA_INICIO
+TITULO: [escreva aqui o título em português]
+BULLET: [ponto 1 objetivo em português]
+BULLET: [ponto 2 objetivo em português]
+BULLET: [ponto 3 objetivo em português]
+NOTICIA_FIM
+
+Repita o bloco acima 4 vezes. Nada mais.` },
   { key: 'agilidade', label: 'Agilidade', color: '#c97df5',
-    prompt: `Você é um curador de conteúdo sobre agilidade para um profissional brasileiro. Traga 4 conteúdos relevantes e recentes sobre agilidade: Scrum, Kanban, SAFe, OKR, times ágeis, transformação digital.\nPara cada item, escreva um título em português e 2-3 bullet points objetivos.\nFormato EXATO para cada notícia (repita 4 vezes):\nTÍTULO: [título em português]\n• bullet 1\n• bullet 2\n• bullet 3\n---` }
+    prompt: `Você é um curador de conteúdo. Retorne EXATAMENTE 4 conteúdos recentes e relevantes sobre agilidade (Scrum, Kanban, SAFe, OKR, times ágeis) para um profissional brasileiro.
+
+Use EXATAMENTE este formato para cada item, sem variações, sem markdown, sem asteriscos, sem texto extra:
+
+NOTICIA_INICIO
+TITULO: [escreva aqui o título em português]
+BULLET: [ponto 1 objetivo em português]
+BULLET: [ponto 2 objetivo em português]
+BULLET: [ponto 3 objetivo em português]
+NOTICIA_FIM
+
+Repita o bloco acima 4 vezes. Nada mais.` }
 ];
 
 function init() {
   document.getElementById('header-date').textContent = new Date().toLocaleDateString('pt-BR', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   }).toUpperCase();
-
   const saved = localStorage.getItem('groq_key');
   if (saved) {
     document.getElementById('api-key').value = saved;
@@ -263,11 +279,7 @@ function init() {
 
 function saveKey() {
   const key = document.getElementById('api-key').value.trim();
-  if (key) {
-    localStorage.setItem('groq_key', key);
-    document.getElementById('banner').classList.remove('visible');
-    setStatus('Chave salva. Clique em Atualizar.', false);
-  }
+  if (key) { localStorage.setItem('groq_key', key); document.getElementById('banner').classList.remove('visible'); setStatus('Chave salva!', false); }
 }
 
 function getKey() { return localStorage.getItem('groq_key') || document.getElementById('api-key').value.trim(); }
@@ -301,13 +313,15 @@ function renderAllGrid(empty = false) {
 
 function parseItems(text) {
   const items = [];
-  const blocks = text.split('---').map(b => b.trim()).filter(Boolean);
+  const blocks = text.split('NOTICIA_INICIO').slice(1);
   for (const block of blocks) {
-    const titleMatch = block.match(/TÍTULO:\s*(.+)/);
+    const end = block.indexOf('NOTICIA_FIM');
+    const content = end > -1 ? block.substring(0, end) : block;
+    const titleMatch = content.match(/TITULO:\s*(.+)/);
     if (!titleMatch) continue;
-    const title = titleMatch[1].trim();
-    const bullets = block.replace(/TÍTULO:\s*.+/, '').trim();
-    items.push({ title, bullets });
+    const title = titleMatch[1].trim().replace(/\*\*/g, '');
+    const bullets = [...content.matchAll(/BULLET:\s*(.+)/g)].map(m => '• ' + m[1].trim()).join('\n');
+    if (title && bullets) items.push({ title, bullets });
   }
   return items;
 }
@@ -330,7 +344,15 @@ async function fetchCategory(cat, apiKey) {
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'llama-3.1-8b-instant', max_tokens: 1200, messages: [{ role: 'user', content: cat.prompt }] })
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      max_tokens: 1500,
+      temperature: 0.3,
+      messages: [
+        { role: 'system', content: 'Você é um assistente que segue formatos de saída com precisão absoluta. Nunca use markdown, asteriscos ou texto fora do formato solicitado.' },
+        { role: 'user', content: cat.prompt }
+      ]
+    })
   });
   const data = await res.json();
   return parseItems(data.choices?.[0]?.message?.content || '');
