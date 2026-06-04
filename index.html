@@ -4,122 +4,172 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Briefing Diário</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0e0e0f;
-    --surface: #161618;
-    --surface2: #1e1e21;
-    --border: #2a2a2e;
-    --text: #f0ede8;
-    --muted: #6b6870;
-    --tech: #4f8ef7;
+    --bg: #080808;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: #222222;
+    --text: #e8e4de;
+    --muted: #555;
+    --tech: #5b9cf6;
     --saude: #3ecf8e;
-    --produto: #f5a623;
-    --agil: #d966f7;
+    --produto: #e8a838;
+    --agil: #c97df5;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; min-height: 100vh; }
+  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; font-weight: 400; min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 1000; opacity: 0.4; }
 
-  header {
-    padding: 32px 48px 20px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+  /* LOCK SCREEN */
+  #lock-screen {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 999; flex-direction: column; gap: 24px;
   }
-  .header-left h1 { font-family: 'Playfair Display', serif; font-size: clamp(24px,4vw,38px); font-weight: 900; letter-spacing: -0.02em; }
-  .header-left .date { font-size: 12px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
-  .refresh-btn {
-    display: flex; align-items: center; gap: 8px;
-    background: var(--surface2); border: 1px solid var(--border); color: var(--text);
-    padding: 9px 18px; border-radius: 8px; cursor: pointer;
-    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
-    transition: all 0.2s; white-space: nowrap;
+  #lock-screen.hidden { display: none; }
+  .lock-icon { font-size: 32px; opacity: 0.3; margin-bottom: 8px; }
+  .lock-title { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-style: italic; color: var(--text); }
+  .lock-sub { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+  .lock-form { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 280px; }
+  .lock-input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); padding: 12px 16px; border-radius: 6px;
+    font-family: 'Syne', sans-serif; font-size: 13px; outline: none;
+    text-align: center; letter-spacing: 0.15em; transition: border-color 0.2s;
   }
-  .refresh-btn:hover { background: #252528; }
-  .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .lock-input:focus { border-color: #444; }
+  .lock-input.error { border-color: #c0392b; animation: shake 0.3s; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+  .lock-btn {
+    width: 100%; background: var(--text); color: var(--bg);
+    padding: 12px; border-radius: 6px; border: none; cursor: pointer;
+    font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.15em; text-transform: uppercase; transition: opacity 0.2s;
+  }
+  .lock-btn:hover { opacity: 0.85; }
+  .lock-error { font-size: 11px; color: #c0392b; letter-spacing: 0.05em; height: 14px; }
+
+  /* HEADER */
+  header { padding: 40px 56px 28px; display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 24px; border-bottom: 1px solid var(--border); }
+  .header-eyebrow { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  h1 { font-family: 'Cormorant Garamond', serif; font-size: clamp(36px,5vw,64px); font-weight: 600; letter-spacing: -0.02em; line-height: 1; font-style: italic; }
+  .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+  .api-key-wrap { display: flex; align-items: center; gap: 8px; }
+  .api-key-input { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 6px; font-family: 'Syne', sans-serif; font-size: 11px; width: 220px; letter-spacing: 0.05em; outline: none; transition: border-color 0.2s; }
+  .api-key-input::placeholder { color: var(--muted); }
+  .api-key-input:focus { border-color: #444; }
+  .btn { display: flex; align-items: center; gap: 8px; background: var(--text); color: var(--bg); padding: 9px 18px; border-radius: 6px; cursor: pointer; font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; border: none; transition: opacity 0.2s; white-space: nowrap; }
+  .btn:hover { opacity: 0.85; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover { border-color: #444; opacity: 1; }
   .spin { animation: spin 1s linear infinite; display: inline-block; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .tabs {
-    display: flex; padding: 0 48px;
-    border-bottom: 1px solid var(--border);
-    overflow-x: auto; scrollbar-width: none;
-  }
-  .tabs::-webkit-scrollbar { display: none; }
-  .tab {
-    padding: 14px 22px; font-size: 12px; font-weight: 500;
-    color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent;
-    white-space: nowrap; transition: all 0.2s; letter-spacing: 0.05em; text-transform: uppercase;
-  }
-  .tab:hover { color: var(--text); }
-  .tab[data-cat="tudo"].active { border-color: var(--text); color: var(--text); }
-  .tab[data-cat="tecnologia"].active { border-color: var(--tech); color: var(--tech); }
-  .tab[data-cat="saude"].active { border-color: var(--saude); color: var(--saude); }
-  .tab[data-cat="produto"].active { border-color: var(--produto); color: var(--produto); }
-  .tab[data-cat="agilidade"].active { border-color: var(--agil); color: var(--agil); }
-  .badge {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 17px; height: 17px; border-radius: 50%; font-size: 9px; font-weight: 700;
-    margin-left: 5px; background: var(--surface2); color: var(--muted);
-  }
+  .status-bar { padding: 10px 56px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted); letter-spacing: 0.05em; }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); display: inline-block; margin-right: 7px; }
+  .status-dot.active { background: var(--saude); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-  main { padding: 28px 48px; }
+  .tabs { display: flex; padding: 0 56px; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { padding: 16px 24px; font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); cursor: pointer; border-bottom: 1px solid transparent; white-space: nowrap; transition: all 0.2s; margin-bottom: -1px; }
+  .tab:hover { color: var(--text); }
+  .tab[data-cat="tudo"].active { color: var(--text); border-color: var(--text); }
+  .tab[data-cat="tecnologia"].active { color: var(--tech); border-color: var(--tech); }
+  .tab[data-cat="saude"].active { color: var(--saude); border-color: var(--saude); }
+  .tab[data-cat="produto"].active { color: var(--produto); border-color: var(--produto); }
+  .tab[data-cat="agilidade"].active { color: var(--agil); border-color: var(--agil); }
+  .badge { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; font-size: 9px; font-weight: 700; margin-left: 6px; background: var(--surface2); color: var(--muted); }
+
+  main { padding: 36px 56px; }
   .section { display: none; animation: fadeIn 0.3s ease; }
   .section.visible { display: block; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
 
-  .all-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-  .cat-block { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-  .cat-block-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
-  .cat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .cat-block-header h2 { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; }
+  .all-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+  .cat-block { background: var(--bg); }
+  .cat-block-header { padding: 18px 22px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
+  .cat-label { font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; }
+  .cat-count { font-size: 10px; color: var(--muted); margin-left: auto; }
 
-  .single-header { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
-  .single-header h2 { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; }
+  .single-header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .single-title { font-family: 'Cormorant Garamond', serif; font-size: 40px; font-weight: 600; font-style: italic; letter-spacing: -0.02em; }
+  .single-count { font-size: 11px; color: var(--muted); letter-spacing: 0.05em; }
+  .single-list { border: 1px solid var(--border); }
 
-  .news-item { padding: 14px 18px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
+  .news-item { padding: 18px 22px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
   .news-item:last-child { border-bottom: none; }
-  .news-item:hover, .news-item.expanded { background: var(--surface2); }
-  .news-item-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-  .news-title { font-size: 13px; font-weight: 500; line-height: 1.45; flex: 1; }
-  .news-chevron { color: var(--muted); font-size: 9px; transition: transform 0.2s; flex-shrink: 0; margin-top: 3px; }
+  .news-item:hover, .news-item.expanded { background: var(--surface); }
+  .news-item-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .news-title { font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 600; line-height: 1.35; flex: 1; }
+  .news-chevron { color: var(--muted); font-size: 9px; transition: transform 0.2s; flex-shrink: 0; margin-top: 5px; }
   .news-item.expanded .news-chevron { transform: rotate(180deg); }
-  .news-meta { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
-  .news-source { font-size: 11px; color: var(--muted); }
-  .news-tag { font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
-  .news-summary { display: none; font-size: 12px; line-height: 1.7; color: #a8a4a0; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
-  .news-item.expanded .news-summary { display: block; }
-  .news-link { display: inline-block; margin-top: 8px; font-size: 11px; color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 1px; transition: color 0.2s; }
-  .news-link:hover { color: var(--text); }
+  .news-body { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .news-item.expanded .news-body { display: block; }
+  .news-bullets { font-size: 13px; line-height: 1.8; color: #999; white-space: pre-line; }
 
-  .skel { background: linear-gradient(90deg, var(--surface2) 25%, #252528 50%, var(--surface2) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 4px; }
-  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-  .skeleton-item { padding: 14px 18px; border-bottom: 1px solid var(--border); }
+  .skeleton-item { padding: 18px 22px; border-bottom: 1px solid var(--border); }
   .skeleton-item:last-child { border-bottom: none; }
-  .skel-line { height: 11px; margin-bottom: 7px; }
-  .w-full { width: 100%; } .w-3q { width: 75%; } .w-half { width: 50%; } .w-q { width: 25%; }
+  .skel { background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%); background-size: 200% 100%; animation: shimmer 1.6s infinite; border-radius: 3px; }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+  .sk-line { height: 10px; margin-bottom: 8px; }
+  .w-full{width:100%} .w-3q{width:75%} .w-q{width:28%}
 
-  .error-box { padding: 18px; text-align: center; color: var(--muted); font-size: 12px; }
+  .empty-state { padding: 40px 22px; text-align: center; color: var(--muted); font-size: 12px; letter-spacing: 0.05em; }
+  .empty-state .icon { font-size: 28px; margin-bottom: 10px; opacity: 0.3; }
 
-  footer { padding: 16px 48px; border-top: 1px solid var(--border); font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .prompt-banner { margin-bottom: 32px; padding: 20px 24px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--text); font-size: 12px; color: var(--muted); line-height: 1.7; display: none; }
+  .prompt-banner.visible { display: block; }
+  .prompt-banner strong { color: var(--text); }
 
-  @media (max-width: 600px) {
-    header, .tabs, main, footer { padding-left: 20px; padding-right: 20px; }
+  footer { padding: 16px 56px; border-top: 1px solid var(--border); font-size: 10px; color: var(--muted); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; letter-spacing: 0.05em; text-transform: uppercase; margin-top: 32px; }
+
+  @media (max-width: 640px) {
+    header, .status-bar, .tabs, main, footer { padding-left: 20px; padding-right: 20px; }
     .all-grid { grid-template-columns: 1fr; }
+    .api-key-input { width: 160px; }
+    h1 { font-size: 32px; }
   }
 </style>
 </head>
 <body>
 
+<!-- LOCK SCREEN -->
+<div id="lock-screen">
+  <div class="lock-icon">◉</div>
+  <div class="lock-title">Briefing Diário</div>
+  <div class="lock-sub">Acesso restrito</div>
+  <div class="lock-form">
+    <input class="lock-input" id="lock-input" type="password" placeholder="Senha de acesso" onkeydown="if(event.key==='Enter')unlock()" autocomplete="off" />
+    <div class="lock-error" id="lock-error"></div>
+    <button class="lock-btn" onclick="unlock()">Entrar</button>
+  </div>
+</div>
+
+<!-- APP -->
 <header>
   <div class="header-left">
+    <div class="header-eyebrow" id="header-date"></div>
     <h1>Briefing Diário</h1>
-    <div class="date" id="header-date"></div>
   </div>
-  <button class="refresh-btn" id="refresh-btn" onclick="loadAll()">
-    <span id="refresh-icon">↻</span> Atualizar
-  </button>
+  <div class="header-right">
+    <div class="api-key-wrap">
+      <input class="api-key-input" id="api-key" type="password" placeholder="Chave Groq" />
+      <button class="btn btn-ghost" onclick="saveKey()">Salvar</button>
+    </div>
+    <button class="btn" id="refresh-btn" onclick="loadAll()">
+      <span id="refresh-icon">↻</span> Atualizar
+    </button>
+  </div>
 </header>
+
+<div class="status-bar">
+  <div><span class="status-dot" id="status-dot"></span><span id="status-text">Aguardando</span></div>
+  <span id="last-updated"></span>
+</div>
 
 <div class="tabs">
   <div class="tab active" data-cat="tudo" onclick="switchTab('tudo')">Tudo</div>
@@ -130,56 +180,102 @@
 </div>
 
 <main>
+  <div class="prompt-banner" id="banner">
+    <strong>Para começar:</strong> Cole sua chave da API do Groq no campo acima e clique em <strong>Salvar</strong>, depois em <strong>Atualizar</strong>. Sua chave fica salva apenas no seu navegador.
+  </div>
   <div class="section visible" id="section-tudo"><div class="all-grid" id="all-grid"></div></div>
   <div class="section" id="section-tecnologia">
-    <div class="single-header"><span style="color:var(--tech);font-size:20px">⬡</span><h2 style="color:var(--tech)">Tecnologia</h2></div>
-    <div class="cat-block"><div class="news-list" id="list-tecnologia"></div></div>
+    <div class="single-header"><span class="single-title" style="color:var(--tech)">Tecnologia</span><span class="single-count" id="count-tecnologia"></span></div>
+    <div class="single-list" id="list-tecnologia"></div>
   </div>
   <div class="section" id="section-saude">
-    <div class="single-header"><span style="color:var(--saude);font-size:20px">⬡</span><h2 style="color:var(--saude)">Saúde</h2></div>
-    <div class="cat-block"><div class="news-list" id="list-saude"></div></div>
+    <div class="single-header"><span class="single-title" style="color:var(--saude)">Saúde</span><span class="single-count" id="count-saude"></span></div>
+    <div class="single-list" id="list-saude"></div>
   </div>
   <div class="section" id="section-produto">
-    <div class="single-header"><span style="color:var(--produto);font-size:20px">⬡</span><h2 style="color:var(--produto)">Gestão de Produtos</h2></div>
-    <div class="cat-block"><div class="news-list" id="list-produto"></div></div>
+    <div class="single-header"><span class="single-title" style="color:var(--produto)">Gestão de Produtos</span><span class="single-count" id="count-produto"></span></div>
+    <div class="single-list" id="list-produto"></div>
   </div>
   <div class="section" id="section-agilidade">
-    <div class="single-header"><span style="color:var(--agil);font-size:20px">⬡</span><h2 style="color:var(--agil)">Agilidade</h2></div>
-    <div class="cat-block"><div class="news-list" id="list-agilidade"></div></div>
+    <div class="single-header"><span class="single-title" style="color:var(--agil)">Agilidade</span><span class="single-count" id="count-agilidade"></span></div>
+    <div class="single-list" id="list-agilidade"></div>
   </div>
 </main>
 
 <footer>
-  <span>Briefing Diário · RSS + IA</span>
-  <span id="last-updated"></span>
+  <span>Briefing Diário · Groq AI</span>
+  <span>llama-3.1-8b-instant</span>
 </footer>
 
 <script>
-const PROXY = 'https://api.rss2json.com/v1/api.json?rss_url=';
+// ── SENHA DE ACESSO ──────────────────────────────────────────
+// Para alterar a senha, mude o valor abaixo:
+const ACCESS_PASSWORD = 'briefing2026';
 
-const FEEDS = [
-  { key: 'tecnologia', label: 'Tecnologia', color: '#4f8ef7', sources: [
-    { name: 'MIT News', url: 'https://news.mit.edu/rss/feed' },
-    { name: 'MIT Tech Review', url: 'https://www.technologyreview.com/feed/' },
-    { name: 'MIT Tech Review BR', url: 'https://mittechreview.com.br/feed/' },
-    { name: 'Canaltech', url: 'https://canaltech.com.br/rss/' }
-  ]},
-  { key: 'saude', label: 'Saúde', color: '#3ecf8e', sources: [
-    { name: 'G1 Saúde', url: 'https://g1.globo.com/rss/g1/ciencia-e-saude/' }
-  ]},
-  { key: 'produto', label: 'Produto', color: '#f5a623', sources: [
-    { name: 'MIT SMR', url: 'https://feeds.feedburner.com/mitsmr' },
-    { name: "Lenny's Newsletter", url: 'https://www.lennysnewsletter.com/feed' },
-    { name: 'PM3', url: 'https://pm3.com.br/blog/feed/' }
-  ]},
-  { key: 'agilidade', label: 'Agilidade', color: '#d966f7', sources: [
-    { name: 'InfoQ', url: 'https://feed.infoq.com' }
-  ]}
+function unlock() {
+  const input = document.getElementById('lock-input');
+  const error = document.getElementById('lock-error');
+  if (input.value === ACCESS_PASSWORD) {
+    sessionStorage.setItem('unlocked', '1');
+    document.getElementById('lock-screen').classList.add('hidden');
+    init();
+  } else {
+    input.classList.add('error');
+    error.textContent = 'Senha incorreta';
+    setTimeout(() => { input.classList.remove('error'); input.value = ''; }, 600);
+  }
+}
+
+window.addEventListener('load', () => {
+  if (sessionStorage.getItem('unlocked') === '1') {
+    document.getElementById('lock-screen').classList.add('hidden');
+    init();
+  }
+});
+
+// ── CATEGORIAS ───────────────────────────────────────────────
+const CATEGORIES = [
+  { key: 'tecnologia', label: 'Tecnologia', color: '#5b9cf6',
+    prompt: `Você é um curador de notícias de tecnologia para um profissional brasileiro. Traga 4 notícias ou tendências relevantes e recentes sobre tecnologia: IA, startups, big tech, produtos digitais, inovação.\nPara cada item, escreva um título em português e 2-3 bullet points objetivos.\nFormato EXATO para cada notícia (repita 4 vezes):\nTÍTULO: [título em português]\n• bullet 1\n• bullet 2\n• bullet 3\n---` },
+  { key: 'saude', label: 'Saúde', color: '#3ecf8e',
+    prompt: `Você é um curador de notícias de saúde para um profissional brasileiro. Traga 4 notícias ou tendências relevantes e recentes sobre saúde: medicina, bem-estar, inovação médica, saúde digital.\nPara cada item, escreva um título em português e 2-3 bullet points objetivos.\nFormato EXATO para cada notícia (repita 4 vezes):\nTÍTULO: [título em português]\n• bullet 1\n• bullet 2\n• bullet 3\n---` },
+  { key: 'produto', label: 'Gestão de Produtos', color: '#e8a838',
+    prompt: `Você é um curador de conteúdo de gestão de produtos para um profissional brasileiro. Traga 4 conteúdos relevantes e recentes sobre product management: frameworks, cases, estratégia, discovery, métricas.\nPara cada item, escreva um título em português e 2-3 bullet points objetivos.\nFormato EXATO para cada notícia (repita 4 vezes):\nTÍTULO: [título em português]\n• bullet 1\n• bullet 2\n• bullet 3\n---` },
+  { key: 'agilidade', label: 'Agilidade', color: '#c97df5',
+    prompt: `Você é um curador de conteúdo sobre agilidade para um profissional brasileiro. Traga 4 conteúdos relevantes e recentes sobre agilidade: Scrum, Kanban, SAFe, OKR, times ágeis, transformação digital.\nPara cada item, escreva um título em português e 2-3 bullet points objetivos.\nFormato EXATO para cada notícia (repita 4 vezes):\nTÍTULO: [título em português]\n• bullet 1\n• bullet 2\n• bullet 3\n---` }
 ];
 
-let allData = {};
+function init() {
+  document.getElementById('header-date').textContent = new Date().toLocaleDateString('pt-BR', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  }).toUpperCase();
 
-document.getElementById('header-date').textContent = new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const saved = localStorage.getItem('groq_key');
+  if (saved) {
+    document.getElementById('api-key').value = saved;
+    loadAll();
+  } else {
+    document.getElementById('banner').classList.add('visible');
+    setStatus('Cole sua chave Groq e clique em Salvar', false);
+    renderAllGrid(true);
+  }
+}
+
+function saveKey() {
+  const key = document.getElementById('api-key').value.trim();
+  if (key) {
+    localStorage.setItem('groq_key', key);
+    document.getElementById('banner').classList.remove('visible');
+    setStatus('Chave salva. Clique em Atualizar.', false);
+  }
+}
+
+function getKey() { return localStorage.getItem('groq_key') || document.getElementById('api-key').value.trim(); }
+
+function setStatus(msg, active) {
+  document.getElementById('status-text').textContent = msg;
+  document.getElementById('status-dot').className = 'status-dot' + (active ? ' active' : '');
+}
 
 function switchTab(cat) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -189,84 +285,84 @@ function switchTab(cat) {
 }
 
 function skeleton() {
-  return Array(3).fill(`<div class="skeleton-item"><div class="skel skel-line w-full"></div><div class="skel skel-line w-3q"></div><div class="skel skel-line w-q"></div></div>`).join('');
+  return Array(3).fill(`<div class="skeleton-item"><div class="skel sk-line w-full"></div><div class="skel sk-line w-3q"></div><div class="skel sk-line w-q" style="margin-top:10px"></div></div>`).join('');
 }
 
-function renderAllGrid() {
-  document.getElementById('all-grid').innerHTML = FEEDS.map(f => `
+function renderAllGrid(empty = false) {
+  document.getElementById('all-grid').innerHTML = CATEGORIES.map(cat => `
     <div class="cat-block">
       <div class="cat-block-header">
-        <div class="cat-dot" style="background:${f.color}"></div>
-        <h2>${f.label}</h2>
+        <span class="cat-label" style="color:${cat.color}">${cat.label}</span>
+        <span class="cat-count" id="all-count-${cat.key}">–</span>
       </div>
-      <div class="news-list" id="all-list-${f.key}">${skeleton()}</div>
+      <div id="all-list-${cat.key}">${empty ? `<div class="empty-state"><div class="icon">◌</div>Aguardando</div>` : skeleton()}</div>
     </div>`).join('');
 }
 
-function stripHtml(html) {
-  const d = document.createElement('div');
-  d.innerHTML = html || '';
-  return d.textContent || '';
+function parseItems(text) {
+  const items = [];
+  const blocks = text.split('---').map(b => b.trim()).filter(Boolean);
+  for (const block of blocks) {
+    const titleMatch = block.match(/TÍTULO:\s*(.+)/);
+    if (!titleMatch) continue;
+    const title = titleMatch[1].trim();
+    const bullets = block.replace(/TÍTULO:\s*.+/, '').trim();
+    items.push({ title, bullets });
+  }
+  return items;
 }
 
-function renderItems(items, containerId, color, sourceName) {
+function renderItems(items, containerId) {
   const el = document.getElementById(containerId);
   if (!el) return;
-  if (!items || !items.length) { el.innerHTML = `<div class="error-box">Nenhum item encontrado.</div>`; return; }
-  el.innerHTML = items.slice(0, 4).map(item => `
+  if (!items || !items.length) { el.innerHTML = `<div class="empty-state"><div class="icon">◌</div>Nenhum item encontrado</div>`; return; }
+  el.innerHTML = items.map(item => `
     <div class="news-item" onclick="this.classList.toggle('expanded')">
       <div class="news-item-top">
-        <div class="news-title">${item.title || 'Sem título'}</div>
+        <div class="news-title">${item.title}</div>
         <div class="news-chevron">▼</div>
       </div>
-      <div class="news-meta">
-        <span class="news-source">${sourceName || item.author || ''}</span>
-        ${item.categories && item.categories[0] ? `<span class="news-tag" style="background:${color}22;color:${color}">${item.categories[0]}</span>` : ''}
-      </div>
-      <div class="news-summary">
-        ${stripHtml(item.description).substring(0, 300)}...
-        ${item.link ? `<a class="news-link" href="${item.link}" target="_blank">Ler artigo completo ↗</a>` : ''}
-      </div>
+      <div class="news-body"><div class="news-bullets">${item.bullets}</div></div>
     </div>`).join('');
 }
 
-async function fetchFeed(url, sourceName) {
-  try {
-    const res = await fetch(`${PROXY}${encodeURIComponent(url)}&count=4`);
-    const data = await res.json();
-    if (data.status === 'ok') return { items: data.items, source: sourceName };
-    return { items: [], source: sourceName };
-  } catch { return { items: [], source: sourceName }; }
-}
-
-async function loadCategory(feed) {
-  document.getElementById(`list-${feed.key}`).innerHTML = skeleton();
-
-  const results = await Promise.all(feed.sources.map(s => fetchFeed(s.url, s.name)));
-  const allItems = results.flatMap(r => r.items.map(i => ({ ...i, _source: r.source })));
-  allItems.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-
-  allData[feed.key] = allItems;
-  document.getElementById(`badge-${feed.key}`).textContent = Math.min(allItems.length, 4);
-
-  renderItems(allItems, `all-list-${feed.key}`, feed.color, null);
-  renderItems(allItems, `list-${feed.key}`, feed.color, null);
+async function fetchCategory(cat, apiKey) {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'llama-3.1-8b-instant', max_tokens: 1200, messages: [{ role: 'user', content: cat.prompt }] })
+  });
+  const data = await res.json();
+  return parseItems(data.choices?.[0]?.message?.content || '');
 }
 
 async function loadAll() {
+  const apiKey = getKey();
+  if (!apiKey) { document.getElementById('banner').classList.add('visible'); setStatus('Chave Groq necessária', false); return; }
   const btn = document.getElementById('refresh-btn');
   const icon = document.getElementById('refresh-icon');
-  btn.disabled = true;
-  icon.classList.add('spin');
-  renderAllGrid();
-  await Promise.all(FEEDS.map(loadCategory));
+  btn.disabled = true; icon.classList.add('spin');
+  setStatus('Buscando notícias...', true);
+  renderAllGrid(false);
+  await Promise.all(CATEGORIES.map(async cat => {
+    try {
+      const items = await fetchCategory(cat, apiKey);
+      document.getElementById(`badge-${cat.key}`).textContent = items.length;
+      document.getElementById(`all-count-${cat.key}`).textContent = `${items.length} itens`;
+      if (document.getElementById(`count-${cat.key}`)) document.getElementById(`count-${cat.key}`).textContent = `${items.length} itens`;
+      renderItems(items, `all-list-${cat.key}`);
+      renderItems(items, `list-${cat.key}`);
+    } catch(e) {
+      const err = `<div class="empty-state"><div class="icon">✕</div>Erro ao carregar</div>`;
+      document.getElementById(`all-list-${cat.key}`).innerHTML = err;
+      if (document.getElementById(`list-${cat.key}`)) document.getElementById(`list-${cat.key}`).innerHTML = err;
+    }
+  }));
   const t = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   document.getElementById('last-updated').textContent = `Atualizado às ${t}`;
-  btn.disabled = false;
-  icon.classList.remove('spin');
+  setStatus('Briefing atualizado', false);
+  btn.disabled = false; icon.classList.remove('spin');
 }
-
-loadAll();
 </script>
 </body>
 </html>
